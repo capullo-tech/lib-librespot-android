@@ -1,0 +1,8 @@
+[versions]
+compileSdk = "34"
+minSdk = "21"
+targetSdk = "34"
+
+[libraries]
+
+[plugins]
