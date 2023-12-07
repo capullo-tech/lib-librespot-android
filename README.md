@@ -1,4 +1,8 @@
 # lib-librespot-android
+[![](https://jitpack.io/v/capullo-tech/lib-librespot-android.svg)](https://jitpack.io/#capullo-tech/lib-librespot-android)
+[![Platform](https://img.shields.io/badge/Platform-Android-green.svg)](https://developer.android.com/guide/)
+![API](https://img.shields.io/badge/Min%20API-23-green)
+![API](https://img.shields.io/badge/Compiled%20API-34-green)
 
 This library packages the android modules from [librespot-android](https://github.com/devgianlu/librespot-android) and [librespot-connect-android](https://github.com/powerbling/librespot-connect-android), namely:
 
@@ -35,14 +39,6 @@ dependencies {
 ```
 
 # Usage
-
-```java
-import com.powerbling.librespot_android_zeroconf_server.AndroidZeroconfServer;
-import xyz.gianlu.librespot.android.sink.AndroidSinkOutput;
-import xyz.gianlu.librespot.player.decoders.AndroidNativeDecoder;
-import xyz.gianlu.librespot.player.decoders.TremoloVorbisDecoder;
-```
-
 Register the Android Native Decoders at app startup
 ```java
 import xyz.gianlu.librespot.audio.decoders.Decoders;
@@ -79,40 +75,43 @@ import xyz.gianlu.librespot.player.Player;
 import xyz.gianlu.librespot.player.PlayerConfiguration;
 
 public final class MainActivity extends AppCompatActivity {
-    Session.Configuration conf = new Session.Configuration.Builder()
-            .setCacheEnabled()
-            .setCacheDir()
-            .setDoCacheCleanUp()
-            .setStoreCredentials()
-            .setStoredCredentialsFile()
-            .setTimeSynchronizationMethod()
-            .setTimeManualCorrection()
-            .setProxyEnabled()
-            .setProxyType()
-            .setProxyAddress()
-            .setProxyPort()
-            .setProxyAuth()
-            .setProxyUsername()
-            .setProxyPassword()
-            .setRetryOnChunkError()
-            .build();
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        Session.Configuration conf = new Session.Configuration.Builder()
+                .setCacheEnabled()
+                .setCacheDir()
+                .setDoCacheCleanUp()
+                .setStoreCredentials()
+                .setStoredCredentialsFile()
+                .setTimeSynchronizationMethod()
+                .setTimeManualCorrection()
+                .setProxyEnabled()
+                .setProxyType()
+                .setProxyAddress()
+                .setProxyPort()
+                .setProxyAuth()
+                .setProxyUsername()
+                .setProxyPassword()
+                .setRetryOnChunkError()
+                .build();
 
-    Session.Builder builder = new Session.Builder(conf)
-            .setPreferredLocale(Locale.getDefault().getLanguage())
-            .setDeviceType(Connect.DeviceType.SMARTPHONE)
-            .setDeviceId(null)
-            .setDeviceName("librespot-android");
-    
-    Session session = builder
-            .userPass("<username>", "<password>")
-            .create();
+        Session.Builder builder = new Session.Builder(conf)
+                .setPreferredLocale(Locale.getDefault().getLanguage())
+                .setDeviceType(Connect.DeviceType.SMARTPHONE)
+                .setDeviceId(null)
+                .setDeviceName("librespot-android");
 
-    PlayerConfiguration configuration = new PlayerConfiguration.Builder()
-            .setOutput(PlayerConfiguration.AudioOutput.CUSTOM)
-            .setOutputClass(AndroidSinkOutput.class.getName())
-            .build();
+        Session session = builder
+                .userPass("<username>", "<password>")
+                .create();
 
-    Player player = new Player(configuration, session);
+        PlayerConfiguration configuration = new PlayerConfiguration.Builder()
+                .setOutput(PlayerConfiguration.AudioOutput.CUSTOM)
+                .setOutputClass(AndroidSinkOutput.class.getName())
+                .build();
+
+        Player player = new Player(configuration, session);
+    }
 }
 ```
 

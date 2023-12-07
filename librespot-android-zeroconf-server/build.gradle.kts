@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "com.powerbling.librespot_android_zeroconf_server"
-    compileSdk = 33
+    compileSdk = 34
 
     defaultConfig {
         minSdk = 23
