@@ -6,6 +6,7 @@ plugins {
 
 android {
     namespace = "xyz.gianlu.librespot.android.sink"
+
     compileSdk = libs.versions.compileSdk.get().toInt()
 
     defaultConfig {

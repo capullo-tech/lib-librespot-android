@@ -6,6 +6,7 @@ plugins {
 
 android {
     namespace = "com.powerbling.librespot_android_zeroconf_server"
+
     compileSdk = libs.versions.compileSdk.get().toInt()
 
     defaultConfig {
