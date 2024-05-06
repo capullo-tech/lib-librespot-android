@@ -2,10 +2,13 @@ package com.powerbling.librespot_android_zeroconf_server;
 
 
 import android.content.Context;
+import android.os.Build;
+import android.util.Log;
 
 import com.github.druk.rx2dnssd.BonjourService;
 import com.github.druk.rx2dnssd.Rx2Dnssd;
 import com.github.druk.rx2dnssd.Rx2DnssdBindable;
+import com.github.druk.rx2dnssd.Rx2DnssdEmbedded;
 import com.google.gson.JsonObject;
 import com.spotify.connectstate.Connect;
 
@@ -120,7 +123,13 @@ public class AndroidZeroconfServer implements Closeable {
 
         new Thread(this.runner = new HttpRunner(listenPort), "zeroconf-http-server").start();
 
-        Rx2Dnssd rxDnssd = new Rx2DnssdBindable(this.context);
+        Rx2Dnssd rxDnssd;
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            rxDnssd = new Rx2DnssdEmbedded(this.context);
+        } else {
+            rxDnssd = new Rx2DnssdBindable(this.context);
+        }
 
         Map<String, String> txt = new HashMap<>();
         txt.put("CPath", "/");
@@ -136,8 +145,10 @@ public class AndroidZeroconfServer implements Closeable {
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(bonjourService -> {
+                    Log.d("CAPULLO", "Register successfully " + bonjourService.toString());
                     LOGGER.info("Register successfully " + bonjourService.toString());
                 }, throwable -> {
+                    Log.e("CAPULLO", "error", throwable);
                     LOGGER.error("error", throwable);
                 });
     }
@@ -265,6 +276,7 @@ public class AndroidZeroconfServer implements Closeable {
 
         synchronized (connectionLock) {
             if (username.equals(connectingUsername)) {
+                Log.d("CAPULLO", username + " is already trying to connect.");
                 LOGGER.info("{} is already trying to connect.", username);
 
                 out.write(httpVersion.getBytes());
@@ -325,6 +337,7 @@ public class AndroidZeroconfServer implements Closeable {
                 connectingUsername = username;
             }
 
+            Log.d("CAPULLO", "Accepted new user from " + params.get("deviceName") + ". {deviceId: " + inner.deviceId + "}");
             LOGGER.info("Accepted new user from {}. {deviceId: {}}", params.get("deviceName"), inner.deviceId);
 
             // Sending response
@@ -357,6 +370,7 @@ public class AndroidZeroconfServer implements Closeable {
                 l.sessionChanged(session);
             }
         } catch (Session.SpotifyAuthenticationException | MercuryClient.MercuryException | IOException | GeneralSecurityException ex) {
+            Log.d("CAPULLO", "Couldn't establish a new session." + ex);
             LOGGER.error("Couldn't establish a new session.", ex);
 
             synchronized (connectionLock) {
@@ -443,6 +457,7 @@ public class AndroidZeroconfServer implements Closeable {
 
         HttpRunner(int port) throws IOException {
             serverSocket = new ServerSocket(port);
+            Log.d("CAPULLO", "Zeroconf HTTP server started successfully on port " + port + "!");
             LOGGER.info("Zeroconf HTTP server started successfully on port {}!", port);
         }
 
@@ -453,6 +468,7 @@ public class AndroidZeroconfServer implements Closeable {
                     Socket socket = serverSocket.accept();
                     executorService.execute(() -> {
                         try {
+                            Log.d("CAPULLO", "Handling request!");
                             handle(socket);
                             socket.close();
                         } catch (IOException ex) {
@@ -470,12 +486,14 @@ public class AndroidZeroconfServer implements Closeable {
                 if (params == null) throw new IllegalArgumentException();
 
                 try {
+                    Log.d("CAPULLO", "Handling addUser!" + out + " " + params + " " + httpVersion);
                     handleAddUser(out, params, httpVersion);
                 } catch (GeneralSecurityException | IOException ex) {
                     LOGGER.error("Failed handling addUser!", ex);
                 }
             } else if (Objects.equals(action, "getInfo")) {
                 try {
+                    Log.d("CAPULLO", "Handling getInfo!" + out + " " + httpVersion);
                     handleGetInfo(out, httpVersion);
                 } catch (IOException ex) {
                     LOGGER.error("Failed handling getInfo!", ex);
@@ -491,6 +509,7 @@ public class AndroidZeroconfServer implements Closeable {
 
             String[] requestLine = Utils.split(Utils.readLine(in), ' ');
             if (requestLine.length != 3) {
+                Log.d("CAPULLO", "Unexpected request line: " + Arrays.toString(requestLine));
                 LOGGER.warn("Unexpected request line: " + Arrays.toString(requestLine));
                 return;
             }
@@ -507,6 +526,7 @@ public class AndroidZeroconfServer implements Closeable {
             }
 
             if (!hasValidSession())
+                Log.d("CAPULLO", "Handling request: " + method + " " + path + " " + httpVersion + ", headers: " + headers);
                 LOGGER.trace("Handling request: {} {} {}, headers: {}", method, path, httpVersion, headers);
 
             Map<String, String> params;
@@ -541,6 +561,7 @@ public class AndroidZeroconfServer implements Closeable {
 
             String action = params.get("action");
             if (action == null) {
+                Log.d("CAPULLO", "Request is missing action.");
                 LOGGER.debug("Request is missing action.");
                 return;
             }
