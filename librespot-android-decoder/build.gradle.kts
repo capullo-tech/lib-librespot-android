@@ -30,10 +30,16 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
+
+    publishing {
+        singleVariant("release") {
+            withSourcesJar()
+        }
+    }
 }
 
 dependencies {
-    implementation("xyz.gianlu.librespot:librespot-decoder-api:1.6.3")
+    api(project(":librespot-android"))
 }
 
 publishing {

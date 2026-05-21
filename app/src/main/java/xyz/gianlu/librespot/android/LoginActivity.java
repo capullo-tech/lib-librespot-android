@@ -21,7 +21,7 @@ import java.util.Locale;
 
 import xyz.gianlu.librespot.android.databinding.ActivityLoginBinding;
 import xyz.gianlu.librespot.core.Session;
-import xyz.gianlu.librespot.mercury.MercuryClient;
+import xyz.gianlu.librespot.core.TokenProvider;
 
 public final class LoginActivity extends AppCompatActivity {
     private static final String TAG = LoginActivity.class.getSimpleName();
@@ -102,7 +102,7 @@ public final class LoginActivity extends AppCompatActivity {
             } catch (IOException |
                     GeneralSecurityException |
                     Session.SpotifyAuthenticationException |
-                    MercuryClient.MercuryException ex) {
+                    TokenProvider.TokenException ex) {
                 Log.e(TAG, "Session creation failed!", ex);
                 handler.post(() -> callback.failedLoggingIn(ex));
             }
