@@ -50,7 +50,7 @@ publishing {
         register<MavenPublication>("release") {
             groupId = "tech.capullo"
             artifactId = "librespot-android-sink"
-            version = "0.2.0-rc02"
+            version = "0.2.0"
 
             afterEvaluate {
                 from(components["release"])

@@ -31,13 +31,13 @@ dependencyResolutionManagement {
 2. Add the modules you need. Most apps want the decoder, sink, and zeroconf adapters (which transitively bring in `librespot-android`):
 ```kotlin
 dependencies {
-    implementation("com.github.capullo-tech.lib-librespot-android:librespot-android-decoder:0.2.0-rc02")
-    implementation("com.github.capullo-tech.lib-librespot-android:librespot-android-sink:0.2.0-rc02")
-    implementation("com.github.capullo-tech.lib-librespot-android:librespot-android-zeroconf-server:0.2.0-rc02")
+    implementation("com.github.capullo-tech.lib-librespot-android:librespot-android-decoder:0.2.0")
+    implementation("com.github.capullo-tech.lib-librespot-android:librespot-android-sink:0.2.0")
+    implementation("com.github.capullo-tech.lib-librespot-android:librespot-android-zeroconf-server:0.2.0")
     // Optional: ARM-optimized Tremolo Vorbis decoder
-    implementation("com.github.capullo-tech.lib-librespot-android:librespot-android-decoder-tremolo:0.2.0-rc02")
+    implementation("com.github.capullo-tech.lib-librespot-android:librespot-android-decoder-tremolo:0.2.0")
     // If you only need the librespot core (Session, Player) without adapters:
-    // implementation("com.github.capullo-tech.lib-librespot-android:librespot-android:0.2.0-rc02")
+    // implementation("com.github.capullo-tech.lib-librespot-android:librespot-android:0.2.0")
 }
 ```
 
