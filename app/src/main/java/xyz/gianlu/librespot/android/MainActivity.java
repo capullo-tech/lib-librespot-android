@@ -27,7 +27,7 @@ import java.util.concurrent.Executors;
 import xyz.gianlu.librespot.android.databinding.ActivityMainBinding;
 import xyz.gianlu.librespot.android.sink.AndroidSinkOutput;
 import xyz.gianlu.librespot.core.Session;
-import xyz.gianlu.librespot.mercury.MercuryClient;
+import xyz.gianlu.librespot.core.TokenProvider;
 import xyz.gianlu.librespot.player.Player;
 import xyz.gianlu.librespot.player.PlayerConfiguration;
 
@@ -157,7 +157,7 @@ public final class MainActivity extends AppCompatActivity {
                 } catch (IOException |
                         GeneralSecurityException |
                         Session.SpotifyAuthenticationException |
-                        MercuryClient.MercuryException ex) {
+                        TokenProvider.TokenException ex) {
                     Log.e(TAG, "Session creation failed!", ex);
                     handler.post(() -> callback.failedGettingReady(ex));
                     return;

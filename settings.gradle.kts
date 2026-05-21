@@ -15,6 +15,7 @@ dependencyResolutionManagement {
 
 rootProject.name = "lib-librespot-android"
 include (":app")
+include(":librespot-android")
 include(":librespot-android-decoder")
 include(":librespot-android-decoder-tremolo")
 include(":librespot-android-sink")

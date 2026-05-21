@@ -1,8 +1,13 @@
 [versions]
-compileSdk = "34"
-minSdk = "21"
-targetSdk = "34"
+compileSdk = "36"
+minSdk = "23"
+targetSdk = "36"
+
+protobufJava = "3.25.8"
+slf4jHandroid = "2.0.13"
 
 [libraries]
+protobuf-java = { module = "com.google.protobuf:protobuf-java", version.ref = "protobufJava" }
+slf4j-handroid = { module = "com.gitlab.mvysny.slf4j:slf4j-handroid", version.ref = "slf4jHandroid" }
 
 [plugins]

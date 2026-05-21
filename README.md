@@ -2,40 +2,43 @@
 [![](https://jitpack.io/v/capullo-tech/lib-librespot-android.svg)](https://jitpack.io/#capullo-tech/lib-librespot-android)
 [![Platform](https://img.shields.io/badge/Platform-Android-green.svg)](https://developer.android.com/guide/)
 ![API](https://img.shields.io/badge/Min%20API-23-green)
-![API](https://img.shields.io/badge/Compiled%20API-34-green)
+![API](https://img.shields.io/badge/Compiled%20API-36-green)
 
-This library packages the android modules from [librespot-android](https://github.com/devgianlu/librespot-android) and [librespot-connect-android](https://github.com/powerbling/librespot-connect-android), namely:
+This library packages an Android-ready bundle of [librespot-java](https://github.com/librespot-org/librespot-java) plus the Android adapter modules from [librespot-android](https://github.com/devgianlu/librespot-android) and [librespot-connect-android](https://github.com/powerbling/librespot-connect-android):
 
-- [librespot-android-decoder](https://github.com/devgianlu/librespot-android/tree/master/librespot-android-decoder)
-- [librespot-android-decoder-tremolo](https://github.com/devgianlu/librespot-android/tree/master/librespot-android-decoder-tremolo)
-- [librespot-android-sink](https://github.com/devgianlu/librespot-android/tree/master/librespot-android-sink)
-- [librespot-android-zeroconf-server](https://github.com/powerbling/librespot-connect-android/tree/master/librespot-android-zeroconf-server)
+- **librespot-android** — vendored sources from the [capullo-tech/librespot-java](https://github.com/capullo-tech/librespot-java) fork (`dev-jsp` branch). Provides the librespot core (`Session`, `Player`, mercury, dealer, metadata, proto-generated types) as a single Android library. Replaces depending on `xyz.gianlu.librespot:librespot-player` from Maven.
+- [librespot-android-decoder](https://github.com/devgianlu/librespot-android/tree/master/librespot-android-decoder) — `AndroidNativeDecoder` (MediaCodec-backed Vorbis/MP3)
+- [librespot-android-decoder-tremolo](https://github.com/devgianlu/librespot-android/tree/master/librespot-android-decoder-tremolo) — ARM-optimized Tremolo Vorbis decoder (ships native `.so`)
+- [librespot-android-sink](https://github.com/devgianlu/librespot-android/tree/master/librespot-android-sink) — `AndroidSinkOutput` (AudioTrack-backed sink)
+- [librespot-android-zeroconf-server](https://github.com/powerbling/librespot-connect-android/tree/master/librespot-android-zeroconf-server) — Spotify Connect zeroconf discovery for Android
 
-Intended to be used in conjunction with [librespot-java](https://github.com/librespot-org/librespot-java) to make a spotify-connect enabled Android application
+The 4 adapter modules transitively pull in `librespot-android` (via `api`), so a consumer only needs to depend on whichever adapters they use.
 
 # Installation
 
-Obtain it via [jitpack](https://jitpack.io/#gsalinaslopez/lib-librespot-android) using gradle.
+Published via [JitPack](https://jitpack.io/#capullo-tech/lib-librespot-android). Each module is a separate artifact under the `com.github.capullo-tech.lib-librespot-android` group.
 
-1. Add the jitpack repository your root **build.gradle**:
-```groovy
-repositories {
-    maven { url "https://jitpack.io"  }
-}
-```
-2. Add the dependency
-```groovy
-dependencies {
-    implementation 'tech.capullo:lib-librespot-android:0.1.0-rc01'
-
-    // Use together with [librespot-java](https://github.com/librespot-org/librespot-java)
-    implementation('xyz.gianlu.librespot:librespot-player:1.6.3:thin') {
-        exclude group: 'xyz.gianlu.librespot', module: 'librespot-sink'
-        exclude group: 'com.lmax', module: 'disruptor'
-        exclude group: 'org.apache.logging.log4j'
+1. Add the JitPack repository to your settings (or root `build.gradle`):
+```kotlin
+dependencyResolutionManagement {
+    repositories {
+        google()
+        mavenCentral()
+        maven("https://jitpack.io")
     }
 }
-
+```
+2. Add the modules you need. Most apps want the decoder, sink, and zeroconf adapters (which transitively bring in `librespot-android`):
+```kotlin
+dependencies {
+    implementation("com.github.capullo-tech.lib-librespot-android:librespot-android-decoder:0.2.0")
+    implementation("com.github.capullo-tech.lib-librespot-android:librespot-android-sink:0.2.0")
+    implementation("com.github.capullo-tech.lib-librespot-android:librespot-android-zeroconf-server:0.2.0")
+    // Optional: ARM-optimized Tremolo Vorbis decoder
+    implementation("com.github.capullo-tech.lib-librespot-android:librespot-android-decoder-tremolo:0.2.0")
+    // If you only need the librespot core (Session, Player) without adapters:
+    // implementation("com.github.capullo-tech.lib-librespot-android:librespot-android:0.2.0")
+}
 ```
 
 # Usage
@@ -67,65 +70,57 @@ public final class LibrespotApp extends Application {
 }
 ```
 
-Create a session and a Player
+Create a session and a Player. The `Session.Builder.create()` call throws `TokenProvider.TokenException` (replaced the old `MercuryClient.MercuryException`) — make sure to catch it.
 ```java
 import xyz.gianlu.librespot.android.sink.AndroidSinkOutput;
 import xyz.gianlu.librespot.core.Session;
+import xyz.gianlu.librespot.core.TokenProvider;
 import xyz.gianlu.librespot.player.Player;
 import xyz.gianlu.librespot.player.PlayerConfiguration;
 
 public final class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        Session.Configuration conf = new Session.Configuration.Builder()
-                .setCacheEnabled()
-                .setCacheDir()
-                .setDoCacheCleanUp()
-                .setStoreCredentials()
-                .setStoredCredentialsFile()
-                .setTimeSynchronizationMethod()
-                .setTimeManualCorrection()
-                .setProxyEnabled()
-                .setProxyType()
-                .setProxyAddress()
-                .setProxyPort()
-                .setProxyAuth()
-                .setProxyUsername()
-                .setProxyPassword()
-                .setRetryOnChunkError()
-                .build();
+        try {
+            Session.Configuration conf = new Session.Configuration.Builder()
+                    .setStoreCredentials(true)
+                    .setStoredCredentialsFile(new File(getFilesDir(), "credentials.json"))
+                    .setCacheEnabled(false)
+                    .build();
 
-        Session.Builder builder = new Session.Builder(conf)
-                .setPreferredLocale(Locale.getDefault().getLanguage())
-                .setDeviceType(Connect.DeviceType.SMARTPHONE)
-                .setDeviceId(null)
-                .setDeviceName("librespot-android");
+            Session.Builder builder = new Session.Builder(conf)
+                    .setPreferredLocale(Locale.getDefault().getLanguage())
+                    .setDeviceType(Connect.DeviceType.SMARTPHONE)
+                    .setDeviceId(null)
+                    .setDeviceName("librespot-android");
 
-        Session session = builder
-                .userPass("<username>", "<password>")
-                .create();
+            Session session = builder.userPass("<username>", "<password>").create();
 
-        PlayerConfiguration configuration = new PlayerConfiguration.Builder()
-                .setOutput(PlayerConfiguration.AudioOutput.CUSTOM)
-                .setOutputClass(AndroidSinkOutput.class.getName())
-                .build();
+            PlayerConfiguration configuration = new PlayerConfiguration.Builder()
+                    .setOutput(PlayerConfiguration.AudioOutput.CUSTOM)
+                    .setOutputClass(AndroidSinkOutput.class.getName())
+                    .build();
 
-        Player player = new Player(configuration, session);
+            Player player = new Player(configuration, session);
+        } catch (IOException | GeneralSecurityException |
+                 Session.SpotifyAuthenticationException |
+                 TokenProvider.TokenException ex) {
+            // handle login failure
+        }
     }
 }
 ```
 
-See the [example app](app)
+See the [demo app](app) for the full canonical setup, including credentials-file persistence and zeroconf-server integration.
 
 # Credits
-- [librespot-android](https://github.com/devgianlu/librespot-android)
-- [librespot-connect-android](https://github.com/powerbling/librespot-connect-android)
+- [librespot-java](https://github.com/librespot-org/librespot-java) — the upstream Java implementation; vendored from the [capullo-tech](https://github.com/capullo-tech/librespot-java) fork
+- [librespot-android](https://github.com/devgianlu/librespot-android) — origin of the decoder and sink adapter modules
+- [librespot-connect-android](https://github.com/powerbling/librespot-connect-android) — origin of the zeroconf-server adapter
 
-# librespot-android
+# Demo app
 
-This is a demo application to demonstrate that it is possible to run [librespot-java](https://github.com/librespot-org/librespot-java) on an Android device. The app provides basic functionalities to login and then to play a custom URI, pause/resume, skip next and previous, but all features could be implemented. 
-
-This repo also contains some useful modules that contain Android-compatible sinks and decoders that you might want to use in your app.
+The `app` module is a minimal demonstration that runs librespot on Android — login (username/password), play a custom URI, pause/resume, skip. Useful as a reference for wiring the library into a real app.
 
 # License
 

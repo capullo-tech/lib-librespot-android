@@ -26,13 +26,19 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    publishing {
+        singleVariant("release") {
+            withSourcesJar()
+        }
     }
 }
 
 dependencies {
-    implementation("xyz.gianlu.librespot:librespot-sink-api:1.6.3")
+    api(project(":librespot-android"))
 
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
@@ -44,7 +50,7 @@ publishing {
         register<MavenPublication>("release") {
             groupId = "tech.capullo"
             artifactId = "librespot-android-sink"
-            version = "0.1.0"
+            version = "0.2.0"
 
             afterEvaluate {
                 from(components["release"])
