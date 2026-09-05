@@ -4,6 +4,10 @@ pluginManagement {
         mavenCentral()
         gradlePluginPortal()
     }
+    plugins {
+        id("com.android.library") version "8.13.0"
+        id("com.google.protobuf") version "0.9.5"
+    }
 }
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
@@ -13,10 +17,5 @@ dependencyResolutionManagement {
     }
 }
 
+// The root project itself is the library module.
 rootProject.name = "lib-librespot-android"
-include (":app")
-include(":librespot-android")
-include(":librespot-android-decoder")
-include(":librespot-android-decoder-tremolo")
-include(":librespot-android-sink")
-include(":librespot-android-zeroconf-server")
